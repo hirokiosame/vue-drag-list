@@ -1,6 +1,6 @@
 # drag-test
 
-Proof of concept that a drag and drop list wouldn't be too difficult to implement.
+Proof of concept that a drag and drop list wouldn't be too difficult to implement in-house.
 
 TODO:
 - Customizable drag shadow
