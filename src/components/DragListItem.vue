@@ -15,16 +15,32 @@
     >
       ::
     </div>
-    <slot />
+
+    {{ item.label }}
+
+    <template v-if="item.children">
+      <drag-list
+        class="childList"
+        v-show="!dragging"
+        :parent-idx="idxPath"
+        :listData="item.children"
+      />
+    </template>
   </li>
 </template>
 
 <script>
 export default {
-  name: 'DragList',
+  name: 'DragListItem',
 
   props: {
+    parentArr: Array,
     item: null,
+    idxPath: Array,
+  },
+
+  components: {
+    DragList: () => import('./DragList'),
   },
 
   inject: {
@@ -46,18 +62,30 @@ export default {
     disableDrag() {
       this.dragEnabled = false;
     },
-    dragStart() {
+    dragStart(e) {
+      e.stopPropagation();
       this.dragging = true;
-      this.draglist.draggedItem = this.item;
+
+      Object.assign(this.draglist, {
+        draggedFromPath: this.idxPath,
+        draggedItem: this.item,
+      });
+
       setTimeout(() => {
         this.invisible = true;
       }, 0);
     },
 
     dragEnd() {
-      this.draglist.draggedItem = null;
-      this.dragging = false;
-      this.invisible = false;
+      Object.assign(this.draglist, {
+        draggedFromPath: null,
+        draggedItem: null,
+      });
+
+      Object.assign(this, {
+        dragging: false,
+        invisible: false,
+      });
     },
   }
 }
@@ -72,13 +100,17 @@ export default {
 .dragHandle {
   display: inline-block;
   background-color: #ccc;
-  width: 10px;
   height: 100%;
   cursor: grab;
+  padding: 2px 4px;
 
   &.dragging {
     cursor: grabbing;
   }
+}
+
+.childList {
+  margin-left: 16px;
 }
 
 </style>

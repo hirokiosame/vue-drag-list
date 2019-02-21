@@ -18,6 +18,28 @@ export default {
       listData: [
         {
           label: 'Shop',
+          children: [
+            {
+              label: 'Featured',
+              children: [
+                {
+                  label: 'New Arrivals'
+                },
+                {
+                  label: 'Subscriptions'
+                },
+                {
+                  label: 'Succulents'
+                },
+              ]
+            },
+            {
+              label: 'Collections',
+            },
+            {
+              label: 'Light',
+            },
+          ]
         },
         {
           label: 'Plant Care',

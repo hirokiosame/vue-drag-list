@@ -1,17 +1,17 @@
 <template>
   <ul class="list">
-    <drag-list-divider @item-dropped="moveItem($event, 0)" />
+    <drag-list-divider @item-dropped="moveItem($event, getPath(0))" />
     <template v-for="(item, idx) in listData">
       <drag-list-item
         :key="`item${idx}`"
+        :idx-path="getPath(idx)"
         :item="item"
-      >
-        {{ item.label }}
-      </drag-list-item>
+        :parentArr="listData"
+      />
       <drag-list-divider
         :key="`divide${idx}`"
         v-show="item !== state.draggedItem"
-        @item-dropped="moveItem($event, idx + 1)"
+        @item-dropped="moveItem($event, getPath(idx + 1))"
       />
     </template>
   </ul>
@@ -21,13 +21,32 @@
 import DragListItem from './DragListItem';
 import DragListDivider from './DragListDivider';
 
+const findParentByPath = (arr, pathArr) => {
+  let node = arr;
+
+  for (let i = 0; i < pathArr.length - 1; i++) {
+    const idx = pathArr[i];
+    node = node[idx];   
+
+    if (!Array.isArray(node)) {
+      node = node.children;
+    } 
+  }
+
+  return node;
+};
+
 export default {
   name: 'DragList',
 
   props: {
     listData: {
       type: Array,
-    }
+    },
+    parentIdx: {
+      type: Array,
+      default: () => [],
+    },
   },
 
   components: {
@@ -35,9 +54,17 @@ export default {
     DragListDivider,
   },
 
+  inject: {
+    draglist: {
+      from: 'draglist',
+      default: undefined,
+    },
+  },
+
   data() {
     return {
-      state: {
+      state: this.draglist || {
+        draglistRoot: this.listData,
         draggedItem: null
       },
     };
@@ -50,14 +77,22 @@ export default {
   },
 
   methods: {
-    moveItem(item, moveToIdx) {
-      const removeIdx = this.listData.indexOf(item);
-      this.listData.splice(removeIdx, 1);
+    getPath(idx) {
+      return this.parentIdx.concat([idx]);
+    },
+    moveItem(item, toPath) {
+      const fromPath = this.state.draggedFromPath;
+      const fromParent = findParentByPath(this.state.draglistRoot, fromPath);
+      const toParent = findParentByPath(this.state.draglistRoot, toPath);
+      const fromIdx = fromPath.slice(-1)[0];
+      let toIdx = toPath.slice(-1)[0];
 
-      if (removeIdx < moveToIdx) {
-        moveToIdx -= 1;
+      if (fromParent === toParent && fromIdx < toIdx) {
+        toIdx -= 1;
       }
-      this.listData.splice(moveToIdx, 0, item);
+
+      fromParent.splice(fromIdx, 1);
+      toParent.splice(toIdx, 0, item);
     },
   },
 };
